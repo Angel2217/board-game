@@ -12,3 +12,12 @@ td {
   height: 60px;
   width: 60px;
 }
+
+.cell {
+  text-align: center;
+}
+
+.blocked {
+  background-color: grey;
+}
+
