@@ -1,6 +1,10 @@
-class Square {
-    constructor(id) {
-        this.id = id;
+class App {
+    constructor(size) {
+        this.board = this.initBoard(size);
+    }
+
+    initBoard(size) {
+        this.board = new Board(size);
     }
 }
 
@@ -8,12 +12,13 @@ class Board {
     constructor(size) {
         this.size = size;
         this.table = this.createTable();
-        this.model = this.createModel();
+        this.array = this.createArray();
+        this.randomCell = this.selectRandomCells(); // is it necessary to declare all the methods in the constructor first?   
+        this.block = this.blockCells();
     }
-
-
     createTable() {
         var tableElem = $("<table>").appendTo(document.body);
+        $("<table>").attr("id", "myTable");
 
         for (let r = 0; r < this.size; r++) {
             var row = $("<tr>").appendTo(tableElem);
@@ -23,116 +28,37 @@ class Board {
                 $("<td>")
                     .attr("id", tdId)
                     .appendTo(row)
-                    .addClass("cell");
+                    .addClass("cell")
             }
         }
-
         return tableElem
     }
 
 
-
-    createModel() {
-        var model = [];
-        for (let r = 0; r < this.size; r++) {
-            model.push([]);
-
-            for (let c = 0; c < this.size; c++) {
-                let sqId = `sq_${r}_${c}`;
-                model[r].push(new Square(sqId));
-            }
-        }
-        return model
-    }
-}
-
-
-let myBoard = new Board(5);
-
-var arrayOfCells = [];
-$(".cell").each(function () {
-    arrayOfCells.push($(this));
-});
-
-function selectRandomCells(number, status) {
-    for (let c = 0; c < number; c++) {
-        var index = Math.floor(Math.random() * arrayOfCells.length);
-        var randomCell = arrayOfCells[index];
-        arrayOfCells.splice(index, 1);
-        randomCell.addClass(status);
-    }
-}
-
-selectRandomCells(5, "blocked");
-
-selectRandomCells(5, "money");
-
-function addMoney() {
-    var cash = ["20$", "40$", "100$", "50$", "90$"];
-    var moneyCells = [];
-    $(".money").each(function () {
-        moneyCells.push($(this));
-    });
-    for (let c = 0; c < cash.length; c++) {
-        moneyCells[c].append(cash[c]);
-    }
-}
-
-addMoney();
-
-//New part from here//
-class Player {
-    constructor(name, location, gain) {
-        this.name = name;
-        this.location = location;
-        this.gain = gain;
-        this.locate = this.locatePlayer();
+    createArray() {
+        var array = [];
+        $(".cell").each(function () {
+            array.push($(this));
+        });
+        return array
     }
 
-    locatePlayer() {
-        this.location.append(this.name + "\n").append(this.gain + "$");
+
+    selectRandomCells() {
+        var index = Math.floor(Math.random() * this.array.length);
+        var randomCell = this.array[index];
+        this.array.splice(index, 1);
+        return randomCell;
     }
-}
 
-selectRandomCells(1, "player");
-var currentPosition = $(".player");
 
-var myPlayer = new Player("Angelica", currentPosition, 0);
-
-$(document).keydown(function (e) {
-    if (e.keyCode === 39) {
-        if (currentPosition.next().attr("class") !== "cell blocked" && (currentPosition.next().attr("class") !== "cell money")) {
-            currentPosition.empty();
-            currentPosition = currentPosition.next();
-            currentPosition.append(myPlayer.name + "\n").append(myPlayer.gain + "$");
-        } else if (currentPosition.next().attr("class") == "cell money") {
-            currentPosition.empty();
-            currentPosition = currentPosition.next();
-            myPlayer.gain = parseInt(myPlayer.gain) + parseInt(currentPosition.html());
-            currentPosition.empty();
-            currentPosition.append(myPlayer.name + "\n").append(myPlayer.gain + "$");
-            currentPosition.removeClass("money");
-        } else {
-            alert("bad move!");
+    blockCells() {
+        for (let i = 0; i < 5; i++) {
+            let myRandomCell = this.selectRandomCells();
+            myRandomCell.append("hello"); // this is only to check that it's working (affecting the DOM). In theory I should write something like
+            // myRandomCell.blocked = true ?         
         }
     }
-});
+}
 
-$(document).keydown(function (e) {
-    if (e.keyCode === 37) {
-        if (currentPosition.prev().attr("class") !== "cell blocked" && (currentPosition.prev().attr("class") !== "cell money")) {
-            currentPosition.empty();
-            currentPosition = currentPosition.prev();
-            currentPosition.append(myPlayer.name + "\n").append(myPlayer.gain + "$");
-        } else if (currentPosition.prev().attr("class") == "cell money") {
-            currentPosition.empty();
-            currentPosition = currentPosition.prev();
-            myPlayer.gain = parseInt(myPlayer.gain) + parseInt(currentPosition.html());
-            currentPosition.empty();
-            currentPosition.append(myPlayer.name + "\n").append(myPlayer.gain + "$");
-            currentPosition.removeClass("money");
-        } else {
-            alert("bad move!");
-        }
-    }
-});
+let myApp = new App(5);
