@@ -1,64 +1,108 @@
 class App {
-    constructor(size) {
-        this.board = this.initBoard(size);
-    }
+  constructor(size) {
+    this.board = this.initBoard(size);
+  }
 
-    initBoard(size) {
-        this.board = new Board(size);
-    }
+  initBoard(size) {
+    this.board = new Board(size);
+  }
 }
+
+
+
+class Square {
+  constructor(id) {
+    this.id = id;
+  }
+
+  get blocked() {
+    let elem = $('#' + this.id);
+    return $(elem).hasClass('blocked');
+  }
+
+  set blocked(bool) {
+    let elem = $('#' + this.id);
+    if (bool) {
+      $(elem).addClass('blocked');
+    } else {
+      $(elem).removeClass('blocked');
+    }
+  }
+
+  get cash() {
+    let elem = $('#' + this.id);
+    return $(elem).hasClass('cash');
+  }
+
+
+  set cash(bool) {
+    let elem = $('#' + this.id);
+    if (bool) {
+      $(elem).addClass('cash');
+    } else {
+      $(elem).removeClass('cash');
+    }
+  }
+
+} // end of Square
+
+
+
 
 class Board {
-    constructor(size) {
-        this.size = size;
-        this.table = this.createTable();
-        this.array = this.createArray();
-        this.randomCell = this.selectRandomCells(); // is it necessary to declare all the methods in the constructor first?   
-        this.block = this.blockCells();
+  constructor(size) {
+    this.size = size;
+    this.table = this.createTable();
+    this.block = this.blockRandomSquare();
+    this.cash = this.addCash();
+  }
+
+
+  createTable() {
+    var tableElem = $("<table>").appendTo(document.body);
+
+    for (let r = 0; r < this.size; r++) {
+      var row = $("<tr>").appendTo(tableElem);
+
+      for (let c = 0; c < this.size; c++) {
+        let tdId = `sq_${r}_${c}`;
+        $("<td>")
+          .attr("id", tdId)
+          .appendTo(row);
+      }
     }
-    createTable() {
-        var tableElem = $("<table>").appendTo(document.body);
-        $("<table>").attr("id", "myTable");
+    return tableElem
+  }
 
-        for (let r = 0; r < this.size; r++) {
-            var row = $("<tr>").appendTo(tableElem);
-
-            for (let c = 0; c < this.size; c++) {
-                let tdId = `sq_${r}_${c}`;
-                $("<td>")
-                    .attr("id", tdId)
-                    .appendTo(row)
-                    .addClass("cell")
-            }
-        }
-        return tableElem
+  blockRandomSquare() {
+    var blockedCount = 0;
+    while (blockedCount < 5) {
+      let r = Math.floor(Math.random() * this.size);
+      let c = Math.floor(Math.random() * this.size);
+      let tdId = `sq_${r}_${c}`;
+      let square = new Square(tdId);
+      if (!square.blocked) {
+        square.blocked = true;
+        blockedCount++
+      }
     }
+  }
 
-
-    createArray() {
-        var array = [];
-        $(".cell").each(function () {
-            array.push($(this));
-        });
-        return array
+  addCash() {
+    var cashCount = 0;
+    while (cashCount < 5) {
+      let r = Math.floor(Math.random() * this.size);
+      let c = Math.floor(Math.random() * this.size);
+      let tdId = `sq_${r}_${c}`;
+      let square = new Square(tdId);
+      if (!square.cash && !square.blocked) {
+        square.cash = true;
+        cashCount++
+      }
     }
+  }
 
+} // end of Board 
 
-    selectRandomCells() {
-        var index = Math.floor(Math.random() * this.array.length);
-        var randomCell = this.array[index];
-        this.array.splice(index, 1);
-        return randomCell;
-    }
-
-
-    blockCells() {
-        for (let i = 0; i < 5; i++) {
-            let myRandomCell = this.selectRandomCells();
-            myRandomCell.append("hello"); // this is only to check that it's working (affecting the DOM). In theory I should write something like
-            // myRandomCell.blocked = true ?         
-        }
-    }
-}
 
 let myApp = new App(5);
