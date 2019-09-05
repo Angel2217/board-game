@@ -18,6 +18,14 @@ td {
   background-color: grey;
 }
 
+body {
+  font-family: calibri;
+}
+
 .cash::after {
   content: "$";
 } 
+
+.money::after {
+  content: "$";
+}
