@@ -14,6 +14,7 @@ class Square {
     this.id = id;
   }
 
+  
   get blocked() {
     let elem = $('#' + this.id);
     return $(elem).hasClass('blocked');
@@ -28,34 +29,41 @@ class Square {
     }
   }
 
+  
   get cash() {
     let amount = 0;
-    let cashDiv = $('#'+ this.id + '.cash');
+    let cashDiv = $('#' + this.id + ' .cash');
     if (cashDiv) {
-        amount = Number( $(cashDiv).text() );  
+      amount = Number($(cashDiv).text());  
+      return amount
     }
-    return amount;
   }
 
-    
   set cash(amount) {
     let elem = $('#' + this.id);
     $(elem).append('<div class="cash">' + amount + '</div>');
   }
 
-  get player() {
-    let elem = $('#' + this.id);
-    return elem.player
-  }
-
-  set player(bool) {
-    let elem = $('#' + this.id);
-    if (bool) {
-      $(elem).append('<div class="player"> </div>');
+  /* Here I wanted to append a div with class='player' to the square, 
+  and since I didn't know what to return in the getter when the div is empty, I returned blank content.
+  I know this is wrong, also because it doesn't work every time :( */
+  get player() { 
+    let content;
+    let playerDiv = $('#' + this.id + ' .player')
+    if (playerDiv) {
+      content = $(playerDiv).text();
+      return content
     }
   }
 
+  set player(content) {
+    let elem = $('#' + this.id);
+    $(elem).append('<div class="player">' + content + '</div>');
+  }
+
+
 } // end of Square
+
 
 
 
@@ -63,14 +71,16 @@ class Board {
   constructor(size) {
     this.size = size;
     this.table = this.createTable();
-    this.block = this.blockRandomSquare();
-    this.cash = this.addCash();
-    this.player = this.placePlayer();
+    this.blockRandomSquare();
+    this.addCash();
+    this.placePlayer();
+    this.movePlayer();
   }
 
 
   createTable() {
     var tableElem = $("<table>").appendTo(document.body);
+    $(tableElem).attr('id', 'myTable')
 
     for (let r = 0; r < this.size; r++) {
       var row = $("<tr>").appendTo(tableElem);
@@ -118,17 +128,31 @@ class Board {
     let c = Math.floor(Math.random() * this.size);
     let tdId = `sq_${r}_${c}`;
     let square = new Square(tdId);
-    let player = new Player();
+    let player = new Player('Angelica');
     if (!square.cash && !square.blocked) {
-      square.player = true;
-      player.name = 'Angelica';
+      square.player = ''; 
       player.money = 0;
     }
   }
 
+  /* Here I started to think about moving the player and since I don't have a model I'm trying to retrieve
+  positions from the table with rows and columns. It's just a start but I wanted to know if it's right to move the player
+  by moving all the divs that are its children */
+  movePlayer() {
+    let tdId = $('.player').parent().attr('id');
+    let rowIndex = Number(tdId[3]);
+    let columnIndex = Number(tdId[5]);
+    let currentPosition = $('#myTable tr:eq(' + rowIndex + ') td:eq(' + columnIndex + ')');
+    let newRow = rowIndex + 1;
+    let newCol = columnIndex + 1;
+    let newPosition = $('#myTable tr:eq(' + newRow + ') td:eq(' + newCol + ')');
+    $(currentPosition).append('I was here');
+    $(currentPosition).children().appendTo(newPosition);
+  }
+
+
 
 } // end of Board 
-
 
 
 class Player {
@@ -136,22 +160,23 @@ class Player {
     this.name = name;
   }
 
-  get name() {
-    return this.name
-  }
-
-  set name(name) {
-    $(".player").append('<div class="name">' + name + '</div>');
-  }
-
-
+//I tried to follow the example with cash in the Square class  
   get money() {
-    return this.money
+    let amount = 0;
+    let moneyDiv = $(this + ' .money');
+    if (moneyDiv) {
+      amount = Number($(moneyDiv).text());
+      return amount
+    }
   }
 
-  set money(money) {
-    $(".player").append('<div class="money">' + money + '</div>');
+  set money(amount) {
+    let elem = $('.player');
+    $(elem).append('<div class="name">' + this.name + '</div>')
+      .append('<div class="money">' + amount + '</div>');
   }
+
+
 
 } // end of Player
 
