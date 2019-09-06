@@ -29,3 +29,7 @@ body {
 .money::after {
   content: "$";
 }
+
+.player { /*just to highlight the div='player'*/
+  background-color: orange;
+}
