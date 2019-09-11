@@ -5,8 +5,11 @@ class App {
 
   initBoard(size) {
     this.board = new Board(size);
+    return this.board;
   }
-}
+
+} // end of App
+
 
 
 class Square {
@@ -14,7 +17,7 @@ class Square {
     this.id = id;
   }
 
-  
+
   get blocked() {
     let elem = $('#' + this.id);
     return $(elem).hasClass('blocked');
@@ -29,36 +32,39 @@ class Square {
     }
   }
 
-  
+
   get cash() {
     let amount = 0;
     let cashDiv = $('#' + this.id + ' .cash');
     if (cashDiv) {
-      amount = Number($(cashDiv).text());  
-      return amount
+      amount = Number($(cashDiv).text());
     }
+    return amount
   }
+
 
   set cash(amount) {
     let elem = $('#' + this.id);
     $(elem).append('<div class="cash">' + amount + '</div>');
   }
 
-  /* Here I wanted to append a div with class='player' to the square, 
-  and since I didn't know what to return in the getter when the div is empty, I returned blank content.
-  I know this is wrong, also because it doesn't work every time :( */
-  get player() { 
-    let content;
-    let playerDiv = $('#' + this.id + ' .player')
-    if (playerDiv) {
-      content = $(playerDiv).text();
-      return content
+
+  get player() {
+    let p = null;
+    let td = $('#' + this.id + '.player');
+    if (td) {
+      p = new Player();
+      return p
     }
   }
 
-  set player(content) {
-    let elem = $('#' + this.id);
-    $(elem).append('<div class="player">' + content + '</div>');
+  set player(p) {
+    let td = $('#' + this.id)[0]; // get <td> for this square
+    if (p === null) {
+      $(td).remove('.player'); // remove the player from the square
+    } else {
+      $(td).append(p.elem); // add the player to the square
+    }
   }
 
 
@@ -95,6 +101,7 @@ class Board {
     return tableElem
   }
 
+
   blockRandomSquare() {
     var blockedCount = 0;
     while (blockedCount < 5) {
@@ -108,6 +115,7 @@ class Board {
       }
     }
   }
+
 
   addCash() {
     var cash = [20, 30, 40, 50, 60];
@@ -123,34 +131,47 @@ class Board {
     }
   }
 
+
   placePlayer() {
-    let r = Math.floor(Math.random() * this.size);
-    let c = Math.floor(Math.random() * this.size);
-    let tdId = `sq_${r}_${c}`;
-    let square = new Square(tdId);
-    let player = new Player('Angelica');
-    if (!square.cash && !square.blocked) {
-      square.player = ''; 
-      player.money = 0;
+    let playerCount = 0;
+    while (playerCount < 1) {
+      let r = Math.floor(Math.random() * this.size);
+      let c = Math.floor(Math.random() * this.size);
+      let tdId = `sq_${r}_${c}`;
+      let square = new Square(tdId);
+      if (!square.cash && !square.blocked) {
+        let p = new Player('Angelica');
+        square.player = p;
+        playerCount++;
+      }
     }
   }
 
-  /* Here I started to think about moving the player and since I don't have a model I'm trying to retrieve
-  positions from the table with rows and columns. It's just a start but I wanted to know if it's right to move the player
-  by moving all the divs that are its children */
+
   movePlayer() {
     let tdId = $('.player').parent().attr('id');
-    let rowIndex = Number(tdId[3]);
-    let columnIndex = Number(tdId[5]);
-    let currentPosition = $('#myTable tr:eq(' + rowIndex + ') td:eq(' + columnIndex + ')');
-    let newRow = rowIndex + 1;
-    let newCol = columnIndex + 1;
-    let newPosition = $('#myTable tr:eq(' + newRow + ') td:eq(' + newCol + ')');
-    $(currentPosition).append('I was here');
-    $(currentPosition).children().appendTo(newPosition);
+    let row = Number(tdId[3]);
+    let col = Number(tdId[5]);
+    let sq1 = $('#' + tdId);
+    let p = sq1.player;
+    let row2 = row + 1;
+    let col2 = col + 1;
+    let tdId2 = `sq_${row2}_${col2}`
+    let sq2 = $('#' + tdId2);
+    if (sq2.length > 0 && sq2.attr('class') !== 'blocked') {
+      sq1.append('I was here');
+      $(sq1).children().appendTo(sq2);
+    }
   }
 
 
+  /* movePlayer(row, col)
+  sq1 = get the square with the player
+  p = sq1.player
+  sq1.player = null
+  sq2 = get square at row/col
+  sq2.player = p
+*/
 
 } // end of Board 
 
@@ -158,26 +179,42 @@ class Board {
 class Player {
   constructor(name) {
     this.name = name;
-  }
+    this.money = 0;
 
-//I tried to follow the example with cash in the Square class  
-  get money() {
-    let amount = 0;
-    let moneyDiv = $(this + ' .money');
-    if (moneyDiv) {
-      amount = Number($(moneyDiv).text());
-      return amount
+
+    let myDiv = $('#' + name); // see if <div> elem already exists
+    if (myDiv.length === 0) {
+      this.elem = this._createElem(); // it doesn’t exist; create it
+    } else {
+      this.elem = myDiv[0]; // yay, we found it
     }
   }
 
-  set money(amount) {
-    let elem = $('.player');
-    $(elem).append('<div class="name">' + this.name + '</div>')
-      .append('<div class="money">' + amount + '</div>');
+  _createElem() {
+    let elem = $('<div>')
+      .attr('id', 'name')
+      .addClass('player')
+      .append('<div class="name">' + this.name + '</div>')
+      .append('<div class="money">' + this.money + '</div>');
+    return elem
   }
 
-
-
+/* get money() {
+    let amount = 0;
+    let moneyDiv = $('.money', this.elem)[0];  // return the 1st elem in player that has class “money"
+    if (moneyDiv) {
+      amount = Number( $(moneyDiv).text() );
+    }
+      return amount
+  }
+  
+set money(amount) {
+   let elem = $('.money', this.elem)[0];
+    $(elem).append(amount);
+  } */
+  
+  
+  
 } // end of Player
 
 let myApp = new App(5);
