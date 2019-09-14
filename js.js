@@ -17,7 +17,6 @@ class Square {
     this.id = id;
   }
 
-
   get blocked() {
     let elem = $('#' + this.id);
     return $(elem).hasClass('blocked');
@@ -32,7 +31,6 @@ class Square {
     }
   }
 
-
   get cash() {
     let amount = 0;
     let cashDiv = $('#' + this.id + ' .cash');
@@ -42,7 +40,6 @@ class Square {
     return amount
   }
 
-
   set cash(amount) {
     let elem = $('#' + this.id);
     $(elem).append('<div class="cash">' + amount + '</div>');
@@ -51,22 +48,32 @@ class Square {
 
   get player() {
     let p = null;
-    let td = $('#' + this.id + '.player');
+    let td = $('#' + this.id + ' .player');
     if (td) {
-      p = new Player();
-      return p
+      p = new Player('Angelica');
     }
+    return p
   }
 
   set player(p) {
-    let td = $('#' + this.id)[0]; // get <td> for this square
+    let td = $('#' + this.id)[0]; 
     if (p === null) {
-      $(td).remove('.player'); // remove the player from the square
+      $('.player', td).remove();
+      $(td).text('was here');
     } else {
-      $(td).append(p.elem); // add the player to the square
+      $(td).append(p.elem); 
     }
   }
 
+
+  static getPlayerSquare() {
+    let tdId = $('.player').parent().attr('id');
+    return new Square(tdId);
+  }
+
+  static getById(id) {
+    return new Square(id);
+  }
 
 } // end of Square
 
@@ -80,7 +87,7 @@ class Board {
     this.blockRandomSquare();
     this.addCash();
     this.placePlayer();
-    this.movePlayer();
+    this.checkValidSquare();
   }
 
 
@@ -148,30 +155,29 @@ class Board {
   }
 
 
-  movePlayer() {
+  checkValidSquare() {
     let tdId = $('.player').parent().attr('id');
     let row = Number(tdId[3]);
     let col = Number(tdId[5]);
-    let sq1 = $('#' + tdId);
-    let p = sq1.player;
     let row2 = row + 1;
     let col2 = col + 1;
-    let tdId2 = `sq_${row2}_${col2}`
-    let sq2 = $('#' + tdId2);
-    if (sq2.length > 0 && sq2.attr('class') !== 'blocked') {
-      sq1.append('I was here');
-      $(sq1).children().appendTo(sq2);
+    if (row2 > 0 && row2 < 5 && col2 > 0 && col2 < 5) {
+      this.movePlayer(row2, col2);
     }
   }
 
 
-  /* movePlayer(row, col)
-  sq1 = get the square with the player
-  p = sq1.player
-  sq1.player = null
-  sq2 = get square at row/col
-  sq2.player = p
-*/
+  movePlayer(row, col) {
+    let sq1 = Square.getPlayerSquare();
+    let p = sq1.player;
+    sq1.player = null;
+    let tdId2 = `sq_${row}_${col}`;
+    let sq2 = Square.getById(tdId2);
+    sq2.player = p;
+  }
+
+
+
 
 } // end of Board 
 
@@ -179,42 +185,29 @@ class Board {
 class Player {
   constructor(name) {
     this.name = name;
-    this.money = 0;
 
 
-    let myDiv = $('#' + name); // see if <div> elem already exists
+    let myDiv = $('#' + name); 
     if (myDiv.length === 0) {
-      this.elem = this._createElem(); // it doesn’t exist; create it
+      this.elem = this._createElem(); 
     } else {
-      this.elem = myDiv[0]; // yay, we found it
+      this.elem = myDiv[0]; 
     }
+
   }
 
   _createElem() {
     let elem = $('<div>')
-      .attr('id', 'name')
+      .attr('id', this.name)
       .addClass('player')
       .append('<div class="name">' + this.name + '</div>')
-      .append('<div class="money">' + this.money + '</div>');
+      .append('<div class="money"> 0 </div>');
     return elem
   }
 
-/* get money() {
-    let amount = 0;
-    let moneyDiv = $('.money', this.elem)[0];  // return the 1st elem in player that has class “money"
-    if (moneyDiv) {
-      amount = Number( $(moneyDiv).text() );
-    }
-      return amount
-  }
-  
-set money(amount) {
-   let elem = $('.money', this.elem)[0];
-    $(elem).append(amount);
-  } */
-  
-  
-  
+
+
+
 } // end of Player
 
 let myApp = new App(5);
