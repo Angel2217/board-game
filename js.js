@@ -45,7 +45,6 @@ class Square {
     $(elem).append('<div class="cash">' + amount + '</div>');
   }
 
-
   get player() {
     let p = null;
     let td = $('#' + this.id + ' .player');
@@ -59,12 +58,10 @@ class Square {
     let td = $('#' + this.id)[0]; 
     if (p === null) {
       $('.player', td).remove();
-      $(td).text('was here');
     } else {
       $(td).append(p.elem); 
     }
   }
-
 
   static getPlayerSquare() {
     let tdId = $('.player').parent().attr('id');
@@ -87,7 +84,7 @@ class Board {
     this.blockRandomSquare();
     this.addCash();
     this.placePlayer();
-    this.checkValidSquare();
+    this.registerKeyHandler();
   }
 
 
@@ -108,7 +105,6 @@ class Board {
     return tableElem
   }
 
-
   blockRandomSquare() {
     var blockedCount = 0;
     while (blockedCount < 5) {
@@ -122,7 +118,6 @@ class Board {
       }
     }
   }
-
 
   addCash() {
     var cash = [20, 30, 40, 50, 60];
@@ -154,32 +149,60 @@ class Board {
     }
   }
 
+  keyHandler(e) {
+    let moveRow = 0;
+    let moveCol = 0;
+    if (e.which == 37) {
+      moveCol = -1;
+    };
+    if (e.which == 38) {
+      moveRow = -1;
+    };
+    if (e.which == 39) {
+      moveCol = 1;
+    };
+    if (e.which == 40) {
+      moveRow = 1;
+    };
+    this.checkValidSquare(moveRow, moveCol);
+  }
 
-  checkValidSquare() {
+  checkValidSquare(x, y) {
     let tdId = $('.player').parent().attr('id');
     let row = Number(tdId[3]);
     let col = Number(tdId[5]);
-    let row2 = row + 1;
-    let col2 = col + 1;
-    if (row2 > 0 && row2 < 5 && col2 > 0 && col2 < 5) {
+    let row2 = row + x;
+    let col2 = col + y;
+    if (row2 > -1 && row2 < 5 && col2 > -1 && col2 < 5) {
       this.movePlayer(row2, col2);
     }
   }
 
-
   movePlayer(row, col) {
     let sq1 = Square.getPlayerSquare();
     let p = sq1.player;
-    sq1.player = null;
     let tdId2 = `sq_${row}_${col}`;
     let sq2 = Square.getById(tdId2);
-    sq2.player = p;
+    if (!sq2.blocked) {
+      sq1.player = null;
+      sq2.player = p;
+    }
+    if (sq2.cash) {
+      let prevMoney = p.money;
+      $('.money').empty();
+      p.money = prevMoney + sq2.cash;
+      $('#' + tdId2).children('.cash').remove();
+    }
+  }
+
+  registerKeyHandler() {
+    let keyHandlerWithThis = Board.prototype.keyHandler.bind(this);
+    $(document).on('keydown', keyHandlerWithThis);
   }
 
 
-
-
 } // end of Board 
+
 
 
 class Player {
@@ -201,13 +224,26 @@ class Player {
       .attr('id', this.name)
       .addClass('player')
       .append('<div class="name">' + this.name + '</div>')
-      .append('<div class="money"> 0 </div>');
+      .append('<div class="money">0</div>');
     return elem
   }
 
+  get money() {
+    let amount = 0;
+    let moneyDiv = $('.money', this.elem)[0]; 
+    if (moneyDiv) {
+      amount = Number($(moneyDiv).text());
+    }
+    return amount
+  }
 
+  set money(amount) {
+    let elem = $('.money', this.elem)[0];
+    $(elem).append(amount);
+  }
 
 
 } // end of Player
+
 
 let myApp = new App(5);
